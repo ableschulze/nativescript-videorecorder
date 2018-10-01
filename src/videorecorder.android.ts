@@ -102,21 +102,21 @@ export class VideoRecorder extends VideoRecorderCommon {
                 intent.resolveActivity(app.android.context.getPackageManager()) !=
                 null
             ) {
-                app.android.off(app.AndroidApplication.activityResultEvent);
-                app.android.currentContext.onActivityResult = (requestCode, resultCode, resultData) => {
-                    if (requestCode === REQUEST_VIDEO_CAPTURE && resultCode === RESULT_OK) {
-                        const mediaFile = resultData ? resultData.getData() : file;
+                app.android.off("activityResult");
+                app.android.on("activityResult", function (args) {
+                    if (args.requestCode === REQUEST_VIDEO_CAPTURE && args.resultCode === RESULT_OK) {
+                        const mediaFile = args.resultData ? args.resultData.getData() : file;
                         if (options.saveToGallery) {
                             resolve({file: getRealPathFromURI(mediaFile)});
                         } else {
                             resolve({file: file.toString()});
                         }
-                    } else if (resultCode === RESULT_CANCELED) {
+                    } else if (args.resultCode === RESULT_CANCELED) {
                         reject({event: 'cancelled'});
                     } else {
                         reject({event: 'failed'});
                     }
-                };
+                });
 
                 app.android.foregroundActivity.startActivityForResult(
                     intent,
